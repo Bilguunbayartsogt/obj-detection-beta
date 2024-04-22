@@ -1,5 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Platform, Button } from "react-native";
+import {
+	StyleSheet,
+	Text,
+	View,
+	Platform,
+	Button,
+	TouchableOpacity,
+} from "react-native";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
@@ -18,17 +25,19 @@ export default function App() {
 	const [model, setModel] = useState();
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
 	const [prediction, setPrediction] = useState("");
+	const [score, setScore] = useState();
+	const [position, setPosition] = useState(null);
 
 	useEffect(() => {
 		const loadModel = async () => {
 			try {
 				await tf.ready();
 				console.log("tf ready");
-				const loadedMobilenet = await mobilenet.load();
-				console.log("mobilenet ready");
-				// const loadedCoco = await cocossd.load();
-				// console.log("coco loaded");
-				setModel(loadedMobilenet);
+				// const loadedMobilenet = await mobilenet.load();
+				// console.log("mobilenet ready");
+				const loadedCoco = await cocossd.load();
+				console.log("coco loaded");
+				setModel(loadedCoco);
 				setIsModelLoaded(true);
 			} catch (err) {
 				console.log(err);
@@ -73,8 +82,20 @@ export default function App() {
 		const loop = async () => {
 			const nextImageTensor = images.next().value;
 			// const predictions = await model.detect(nextImageTensor);
-			const predictions = await model.classify(nextImageTensor);
-			setPrediction(predictions.map((obj) => obj.className));
+			const predictions = await model.detect(nextImageTensor);
+			setPrediction(predictions.map((obj) => obj.class));
+			setScore(predictions.map((obj) => parseFloat(obj.score) * 100));
+			setPosition(
+				predictions.map((obj) => {
+					if (obj.bbox.length > 0) {
+						console.log(obj.bbox);
+						return obj.bbox;
+					} else {
+						return null;
+					}
+				})
+			);
+			// console.log(predictions.bbox);
 			tf.dispose([nextImageTensor]);
 			// if (predictions[0]) {
 			// 	setPrediction(prediction[0].class);
@@ -83,16 +104,33 @@ export default function App() {
 			// if (predictions[0]["probability"] >= 0.66) {
 			// 	setPrediction(predictions[0]["className"]);
 			// }
-			// do something with tensor here
-			//
 
-			// if autorender is false you need the following two lines.
 			// updatePreview();
 			// gl.endFrameEXP();
 
 			requestAnimationFrame(loop);
 		};
 		loop();
+	}
+
+	function toggleCameraType() {
+		setType((current) =>
+			current === CameraType.back ? CameraType.front : CameraType.back
+		);
+	}
+
+	function displayBoxes(prediction, score, position) {
+		if (prediction !== "" && position !== null) {
+			return (
+				<ObjectBox
+					prediction={prediction}
+					score={score}
+					position={position}
+				></ObjectBox>
+			);
+		} else {
+			return "";
+		}
 	}
 
 	return (
@@ -104,17 +142,26 @@ export default function App() {
 				<Text style={styles.modelStatus}>Prediction: {prediction}</Text>
 			</View>
 			{isModelLoaded ? (
-				<TensorCamera
-					style={styles.camera}
-					type={type}
-					cameraTextureHeight={1200}
-					cameraTextureWidth={1600}
-					resizeHeight={200}
-					resizeWidth={152}
-					resizeDepth={3}
-					onReady={handleCameraStream}
-					autorender={true}
-				/>
+				<>
+					<TensorCamera
+						style={styles.camera}
+						type={type}
+						cameraTextureHeight={1200}
+						cameraTextureWidth={1600}
+						resizeHeight={200}
+						resizeWidth={152}
+						resizeDepth={3}
+						onReady={handleCameraStream}
+						autorender={true}
+						useCustomShadersToResize={false}
+					/>
+					{score > 65 ? displayBoxes(prediction, score) : ""}
+					<View style={styles.buttonContainer}>
+						<TouchableOpacity style={styles.button} onPress={toggleCameraType}>
+							<Text style={styles.text}>Flip Camera</Text>
+						</TouchableOpacity>
+					</View>
+				</>
 			) : (
 				<View style={{ flex: 8 }}>
 					<Text>Model Loading...</Text>
@@ -124,7 +171,36 @@ export default function App() {
 	);
 }
 
+function ObjectBox(props) {
+	return (
+		<View
+			style={[
+				styles.boxContainer,
+				{
+					marginLeft: props.position[0],
+					marginTop: props.position[1],
+				},
+			]}
+		>
+			<Text style={styles.boxText}>
+				{props.prediction} with {Math.round(props.score)}% confidence at{" "}
+				{props.position}
+			</Text>
+		</View>
+	);
+}
+
 const styles = StyleSheet.create({
+	boxContainer: {
+		position: "absolute",
+		borderWidth: 5,
+		borderColor: "green",
+		top: 0,
+		left: 0,
+	},
+	boxText: {
+		fontSize: 40,
+	},
 	container: {
 		flex: 1,
 		justifyContent: "center",
@@ -139,6 +215,22 @@ const styles = StyleSheet.create({
 		fontSize: 10,
 	},
 	camera: {
-		flex: 8,
+		flex: 10,
+	},
+	buttonContainer: {
+		flex: 1,
+		flexDirection: "row",
+		backgroundColor: "transparent",
+		margin: 40,
+	},
+	button: {
+		flex: 1,
+		alignSelf: "flex-end",
+		alignItems: "center",
+	},
+	text: {
+		fontSize: 24,
+		fontWeight: "bold",
+		color: "black",
 	},
 });
