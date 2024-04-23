@@ -5,6 +5,7 @@ Implemented the Coco SSD object detection model from Tensorflow @tensorflow-mode
 
 ## TensorCamera 
 Used the TensorCamera component from @tensorflow/tfjs-react-native to yield tensors from a live camera stream. 
+It wraps around the Camera component from expo-camera.
 
 Referenced the following Codelabs tutorial from Google: 
 
