@@ -1,15 +1,6 @@
-import { StatusBar } from "expo-status-bar";
-import {
-	StyleSheet,
-	Text,
-	View,
-	Platform,
-	Button,
-	TouchableOpacity,
-} from "react-native";
+import { Text, View, Button, TouchableOpacity } from "react-native";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
-import * as mobilenet from "@tensorflow-models/mobilenet";
 import * as cocossd from "@tensorflow-models/coco-ssd";
 
 import { useEffect, useState } from "react";
@@ -19,105 +10,73 @@ import { cameraWithTensors } from "@tensorflow/tfjs-react-native";
 
 const TensorCamera = cameraWithTensors(Camera);
 
+//import styles
+import { styles } from "./styles";
+
+//import custom components
+import { ObjectBox } from "./components/object-box";
+
+//import functions
+import { getPermission } from "./functions/get-permission";
+
+//import configs
+import { textureDims } from "./configs/textureDims";
+
+//main app
 export default function App() {
+	//camera type: back or front
 	const [type, setType] = useState(CameraType.back);
+	//device camera permission
 	const [permission, requestPermission] = Camera.useCameraPermissions();
+	//for storing the model
 	const [model, setModel] = useState();
+	//check if model is loaded or not to display different elements
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
-	const [prediction, setPrediction] = useState("");
-	const [score, setScore] = useState();
-	const [position, setPosition] = useState(null);
-	const [bbox, setBbox] = useState(null);
+	//predictions from the loaded model
 	const [predictions, setPredictions] = useState("");
 
+	//get user permission and load the model
 	useEffect(() => {
 		const loadModel = async () => {
+			getPermission(permission, requestPermission);
 			try {
 				await tf.ready();
 				console.log("tf ready");
-				// const loadedMobilenet = await mobilenet.load();
-				// console.log("mobilenet ready");
 				const loadedCoco = await cocossd.load();
 				console.log("coco loaded");
 				setModel(loadedCoco);
 				setIsModelLoaded(true);
 			} catch (err) {
-				console.log(err);
+				console.log(`Error loading the model: ${err}`);
 			}
-			// Set the loaded model to your component's state or a class property
 		};
-
 		loadModel();
 	}, []);
 
-	if (!permission) {
-		// Camera permissions are still loading
-		return <View />;
-	}
-
-	if (!permission.granted) {
-		// Camera permissions are not granted yet
-		return (
-			<View style={styles.container}>
-				<Text style={{ textAlign: "center" }}>
-					We need your permission to show the camera
-				</Text>
-				<Button onPress={requestPermission} title="grant permission" />
-			</View>
-		);
-	}
-
-	let textureDims;
-	if (Platform.OS === "ios") {
-		textureDims = {
-			height: 1920,
-			width: 1080,
-		};
-	} else {
-		textureDims = {
-			height: 1200,
-			width: 1600,
-		};
-	}
-
+	//the main loop function for continiously extracting tensors from the camera stream
 	function handleCameraStream(images, updatePreview, gl) {
 		const loop = async () => {
 			const nextImageTensor = images.next().value;
-			// const predictions = await model.detect(nextImageTensor);
 			const predictions = await model.detect(nextImageTensor);
 			setPredictions(predictions);
-			console.log(predictions);
-			setPrediction(predictions.map((obj) => obj.class));
-			setScore(predictions.map((obj) => parseFloat(obj.score) * 100));
-			setBbox(predictions.map((obj) => obj.bbox));
-			setPosition(
-				predictions.map((obj) => {
-					if (obj.bbox.length > 0) {
-						// console.log(obj.bbox);
-						return obj.bbox;
-					} else {
-						return null;
-					}
-				})
-			);
+			// console.log(predictions);
 
-			// console.log(predictions.bbox);
+			//dispose the frame after the prediction is done
 			tf.dispose([nextImageTensor]);
-
-			// updatePreview();
-			// gl.endFrameEXP();
 
 			requestAnimationFrame(loop);
 		};
 		loop();
 	}
 
+	//function for changing the camera type
 	function toggleCameraType() {
 		setType((current) =>
 			current === CameraType.back ? CameraType.front : CameraType.back
 		);
 	}
 
+	//function for displaying the prediction results to the user
 	function displayBoxes(predictions) {
 		if (predictions.length > 0) {
 			return predictions.map((prediction, index) => {
@@ -178,69 +137,3 @@ export default function App() {
 		</View>
 	);
 }
-
-function ObjectBox(props) {
-	return (
-		<View
-			style={{
-				left: props.marginLeft,
-				top: props.marginTop,
-				width: props.width,
-				height: props.height,
-				position: "absolute",
-				borderWidth: 2,
-				borderColor: "#fff",
-				backgroundColor: "rgba(0, 255, 0, 0.25)",
-				flex: 1,
-			}}
-		>
-			<Text style={styles.boxText}>
-				{props.class} with {Math.round(props.score * 100)}% confidence
-			</Text>
-		</View>
-	);
-}
-
-const styles = StyleSheet.create({
-	boxContainer: {
-		position: "absolute",
-		borderWidth: 5,
-		borderColor: "green",
-	},
-	boxText: {
-		fontSize: 20,
-		color: "black",
-	},
-	container: {
-		flex: 1,
-		// justifyContent: "center",
-	},
-	statusContainer: {
-		flex: 1,
-		marginTop: 40,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	modelStatus: {
-		fontSize: 10,
-	},
-	camera: {
-		flex: 10,
-	},
-	buttonContainer: {
-		flex: 1,
-		flexDirection: "row",
-		backgroundColor: "transparent",
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	button: {
-		flex: 1,
-		alignItems: "center",
-	},
-	text: {
-		fontSize: 24,
-		fontWeight: "bold",
-		color: "black",
-	},
-});
