@@ -1,38 +1,52 @@
 {
-	"expo": {
-		"name": "test-tslite",
-		"plugins": [
-			[
-				"expo-camera",
-				{
-					"cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-					"microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-					"recordAudioAndroid": true
-				}
-			]
-		],
-		"slug": "test-tslite",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "",
-		"userInterfaceStyle": "light",
-		"splash": {
-			"image": "./assets/splash.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#ffffff"
-		},
-		"assetBundlePatterns": ["**/*"],
-		"ios": {
-			"supportsTablet": true
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "",
-				"backgroundColor": "#ffffff"
-			}
-		},
-		"web": {
-			"favicon": ""
-		}
-	}
+  "expo": {
+    "name": "test-tslite",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ]
+    ],
+    "slug": "object-detection",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bil9uun.objectdetection"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.bil9uun.objectdetection"
+    },
+    "web": {
+      "favicon": ""
+    },
+    "extra": {
+      "eas": {
+        "projectId": "73d759e8-e99a-4cb9-8bd7-81f54a144d70"
+      }
+    },
+    "owner": "bil9uun"
+  }
 }
