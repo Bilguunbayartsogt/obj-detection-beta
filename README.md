@@ -16,3 +16,8 @@ Referenced the following Codelabs tutorial from Google:
 
 
 at : https://codelabs.developers.google.com/codelabs/tensorflowjs-object-detection?hl=en#5
+
+
+## Demo Preview
+
+Demo preview of the app will be posted on my YouTube channel soon: https://www.youtube.com/@Chevrode
