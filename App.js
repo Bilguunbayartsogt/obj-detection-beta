@@ -32,6 +32,7 @@ export default function App() {
 	const [model, setModel] = useState();
 	//check if model is loaded or not to display different elements
 	const [isModelLoaded, setIsModelLoaded] = useState(false);
+	const [isTfLoaded, setIsTfLoaded] = useState(false);
 	//predictions from the loaded model
 	const [predictions, setPredictions] = useState("");
 
@@ -42,6 +43,7 @@ export default function App() {
 			try {
 				await tf.ready();
 				console.log("tf ready");
+				setIsTfLoaded(true);
 				const loadedCoco = await cocossd.load();
 				console.log("coco loaded");
 				setModel(loadedCoco);
@@ -101,12 +103,12 @@ export default function App() {
 
 	return (
 		<View style={styles.container}>
-			{/* <View style={styles.statusContainer}>
-				<Text style={styles.modelStatus}>
-					{!isModelLoaded ? "Model Loading..." : "Model Loaded"}
+			<View style={styles.modelStatus}>
+				<Text style={styles.modelStatusText}>
+					{!isModelLoaded ? (isTfLoaded ? "Tf Loaded, " : "Loading Tf...") : ""}
+					{isModelLoaded ? "Model ready!" : "Loading Model..."}
 				</Text>
-				<Text style={styles.modelStatus}>Prediction: {prediction}</Text>
-			</View> */}
+			</View>
 			{isModelLoaded ? (
 				<>
 					<TensorCamera
@@ -121,8 +123,8 @@ export default function App() {
 						onReady={handleCameraStream}
 						autorender={true}
 						useCustomShadersToResize={false}
-					/>
-					{displayBoxes(predictions)}
+					></TensorCamera>
+					<View style={styles.boxes}>{displayBoxes(predictions)}</View>
 					<View style={styles.buttonContainer}>
 						<TouchableOpacity style={styles.button} onPress={toggleCameraType}>
 							<Text style={styles.text}>Flip Camera</Text>
@@ -130,8 +132,10 @@ export default function App() {
 					</View>
 				</>
 			) : (
-				<View style={{ flex: 8 }}>
-					<Text>Model Loading...</Text>
+				<View
+					style={{ flex: 8, justifyContent: "center", alignItems: "center" }}
+				>
+					<Text style={{ fontSize: 30 }}>Camera Loading...</Text>
 				</View>
 			)}
 		</View>

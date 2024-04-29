@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+	boxes: {
+		position: "absolute",
+	},
 	boxContainer: {
 		position: "absolute",
 		borderWidth: 5,
@@ -14,14 +17,14 @@ export const styles = StyleSheet.create({
 		flex: 1,
 		// justifyContent: "center",
 	},
-	statusContainer: {
+	modelStatus: {
 		flex: 1,
-		marginTop: 40,
-		justifyContent: "center",
+		padding: 10,
+		justifyContent: "flex-end",
 		alignItems: "center",
 	},
-	modelStatus: {
-		fontSize: 10,
+	modelStatusText: {
+		fontSize: 20,
 	},
 	camera: {
 		flex: 10,
