@@ -21,3 +21,7 @@ at : https://codelabs.developers.google.com/codelabs/tensorflowjs-object-detecti
 ## Demo Preview
 
 Demo preview of the app will be posted on my YouTube channel soon: https://www.youtube.com/@Chevrode
+
+## Update: 
+
+Since the last time I ran the app and made the demo video in April 2024, I think there was some package updates, and unfortunately the new versions of react native and tensorflow.js I used in this project are no longer compatible, and the old versions are deprecated. 
